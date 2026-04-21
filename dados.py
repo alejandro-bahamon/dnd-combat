@@ -14,7 +14,3 @@ if __name__ == "__main__":
     print("\n🎲 Lanzando un d6...")
     resultado = lanzar_dado(6)
     print(f"Resultado: {resultado}")
-
-    print("\n🎲 Lanzando un d8...")
-    resultado = lanzar_dado(8)
-    print(f"Resultado: {resultado}")
