@@ -3,14 +3,26 @@ from personaje import Personaje
 
 def realizar_turno(atacante, defensor):
     dado = lanzar_dado(20)
-    danio = atacante.ataque + dado - defensor.defensa
-
-    print(f"\n🎲 {atacante.nombre} lanza el dado → {dado}")
+    
+    # Golpe crítico — saca 20 en el d20
+    if dado == 20:
+        danio = (atacante.ataque * 2) - defensor.defensa
+        print(f"\n🎲 {atacante.nombre} lanza el dado → ¡{dado} CRÍTICO! 💥")
+        print(f"⚡ ¡GOLPE CRÍTICO! El daño se duplica")
+    # Pifia — saca 1 en el d20
+    elif dado == 1:
+        danio = 0
+        print(f"\n🎲 {atacante.nombre} lanza el dado → {dado} 😬 ¡PIFIA!")
+        print(f"🤦 ¡{atacante.nombre} tropezó y falló el ataque!")
+    # Ataque normal
+    else:
+        danio = atacante.ataque + dado - defensor.defensa
+        print(f"\n🎲 {atacante.nombre} lanza el dado → {dado}")
 
     if danio > 0:
         defensor.recibir_danio(danio)
-        print(f"💥 ¡Golpe! {defensor.nombre} recibe {danio} de daño")
-    else:
+        print(f"💥 {defensor.nombre} recibe {danio} de daño")
+    elif dado != 1:
         print(f"🛡️ ¡Bloqueado! {defensor.nombre} resistió el ataque")
 
     defensor.mostrar_estado()
