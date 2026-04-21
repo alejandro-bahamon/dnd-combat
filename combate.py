@@ -38,8 +38,19 @@ def iniciar_combate(personaje1, personaje2):
     turno = 1
     while personaje1.esta_vivo() and personaje2.esta_vivo():
         print(f"\n--- Turno {turno} ---")
-        realizar_turno(personaje1, personaje2)
 
+        # El jugador elige qué hacer
+        print(f"\n¿Qué hace {personaje1.nombre}?")
+        print("1. Atacar")
+        print("2. Usar poción 🧪")
+        accion = input("Elige (1/2): ")
+
+        if accion == "2":
+            personaje1.usar_pocion()
+        else:
+            realizar_turno(personaje1, personaje2)
+
+        # El enemigo siempre ataca
         if personaje2.esta_vivo():
             realizar_turno(personaje2, personaje1)
 
