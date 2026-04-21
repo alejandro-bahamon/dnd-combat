@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>⚔️ Simulador D&D</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      color: #eee;
+      font-family: 'Georgia', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #f4a261;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #f4a26188;
+    }
+
+    .panel {
+      background: #16213e;
+      border: 1px solid #f4a26155;
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 16px;
+    }
+
+    .panel h2 { color: #f4a261; margin-bottom: 12px; }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #f4a26155;
+      background: #0f3460;
+      color: #eee;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      transition: transform 0.1s;
+    }
+
+    button:active   { transform: scale(0.97); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-atacar   { background: #e63946; color: white; }
+    .btn-pocion   { background: #2a9d8f; color: white; }
+    .btn-iniciar  { background: #f4a261; color: #1a1a2e; font-weight: bold; }
+    .btn-reiniciar{ background: #457b9d; color: white; }
+
+    .barra-contenedor {
+      background: #0f3460;
+      border-radius: 8px;
+      height: 20px;
+      margin: 6px 0;
+      overflow: hidden;
+    }
+
+    .barra-vida {
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.4s ease;
+    }
+
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .dado-box {
+      display: none;
+      text-align: center;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: #0f3460;
+      border-radius: 10px;
+      border: 1px solid #f4a26155;
+    }
+
+    .dado-emoji   { font-size: 3rem; transition: all 0.1s; }
+    .dado-numero  { font-size: 1.5rem; color: #f4a261; margin-top: 8px; }
+    .dado-hint    { color: #aaa; font-size: 0.9rem; margin-top: 6px; }
+
+    kbd {
+      background: #1a1a2e;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #f4a261;
+    }
+
+    .log {
+      background: #0f3460;
+      border-radius: 8px;
+      padding: 12px;
+      height: 220px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      line-height: 1.9;
+    }
+
+    .resultado {
+      font-size: 1.4rem;
+      text-align: center;
+      color: #f4a261;
+      padding: 12px;
+      display: none;
+    }
+
+    #combate-panel { display: none; }
+    #log-panel     { display: none; }
+  </style>
+</head>
+<body>
+
+<h1>⚔️ Simulador D&D</h1>
+
+<!-- Panel inicio -->
+<div class="panel" id="inicio-panel">
+  <h2>🧙 Crea tu personaje</h2>
+  <input type="text" id="nombre" placeholder="Tu nombre de héroe">
+  <select id="clase">
+    <option value="guerrero">⚔️ Guerrero  (vida=40, ataque=10, defensa=8)</option>
+    <option value="mago">🔮 Mago      (vida=25, ataque=15, defensa=4)</option>
+    <option value="picaro">🗡️ Pícaro    (vida=30, ataque=12, defensa=6)</option>
+  </select>
+
+  <h2 style="margin-top:16px">👹 Elige tu enemigo</h2>
+  <select id="enemigo">
+    <option value="goblin">👺 Goblin  (vida=20, ataque=6,  defensa=3)</option>
+    <option value="orco">👹 Orco    (vida=35, ataque=10, defensa=6)</option>
+    <option value="dragon">🐉 Dragón  (vida=50, ataque=14, defensa=9)</option>
+  </select>
+
+  <button class="btn-iniciar" onclick="iniciarCombate()">⚔️ ¡Comenzar combate!</button>
+</div>
+
+<!-- Panel combate -->
+<div class="panel" id="combate-panel">
+
+  <h2 id="nombre-jugador"></h2>
+  <div class="barra-contenedor">
+    <div class="barra-vida" id="barra-jugador" style="background:#e63946"></div>
+  </div>
+  <div class="stats">
+    <span id="vida-jugador"></span>
+    <span id="ataque-jugador"></span>
+    <span id="defensa-jugador"></span>
+    <span id="pociones-jugador"></span>
+  </div>
+
+  <hr style="border-color:#f4a26133; margin:16px 0">
+
+  <h2 id="nombre-enemigo"></h2>
+  <div class="barra-contenedor">
+    <div class="barra-vida" id="barra-enemigo" style="background:#f4a261"></div>
+  </div>
+  <div class="stats">
+    <span id="vida-enemigo"></span>
+    <span id="ataque-enemigo"></span>
+    <span id="defensa-enemigo"></span>
+  </div>
+
+  <div class="resultado" id="resultado"></div>
+
+  <!-- Dado animado -->
+  <div class="dado-box" id="dado-box">
+    <div class="dado-emoji" id="dado-emoji">🎲</div>
+    <div class="dado-numero" id="dado-numero"></div>
+    <div class="dado-hint" id="dado-hint">
+      Presiona <kbd>ESPACIO</kbd> para lanzar
+    </div>
+  </div>
+
+  <div style="margin-top:16px">
+    <button class="btn-atacar"    id="btn-atacar"  onclick="prepararAtaque()">⚔️ Atacar</button>
+    <button class="btn-pocion"    id="btn-pocion"  onclick="enviarAccion('pocion')">🧪 Usar poción</button>
+    <button class="btn-reiniciar"                  onclick="reiniciar()">🔄 Jugar de nuevo</button>
+  </div>
+</div>
+
+<!-- Log -->
+<div class="panel" id="log-panel">
+  <h2>📜 Log de combate</h2>
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+  let vidaMaxJugador  = 1;
+  let vidaMaxEnemigo  = 1;
+  let combateTerminado = false;
+  let esperandoDado   = false;
+  let animacionDado   = null;
+  let dadoResultado   = null;
+
+  const carasAnim = ["⚀","⚁","⚂","⚃","⚄","⚅","🎲"];
+
+  // ── Iniciar ─────────────────────────────────────────
+  async function iniciarCombate() {
+    const nombre  = document.getElementById("nombre").value || "Héroe";
+    const clase   = document.getElementById("clase").value;
+    const enemigo = document.getElementById("enemigo").value;
+
+    const res  = await fetch("/iniciar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, clase, enemigo })
+    });
+    const data = await res.json();
+
+    vidaMaxJugador   = data.jugador.vida;
+    vidaMaxEnemigo   = data.enemigo.vida;
+    combateTerminado = false;
+
+    document.getElementById("inicio-panel").style.display  = "none";
+    document.getElementById("combate-panel").style.display = "block";
+    document.getElementById("log-panel").style.display     = "block";
+    document.getElementById("resultado").style.display     = "none";
+    document.getElementById("log").innerHTML               = "";
+
+    actualizarUI(data.jugador, data.enemigo);
+  }
+
+  // ── Preparar ataque ─────────────────────────────────
+  function prepararAtaque() {
+    if (combateTerminado) return;
+    esperandoDado = true;
+    dadoResultado = null;
+
+    document.getElementById("btn-atacar").disabled = true;
+    document.getElementById("btn-pocion").disabled = true;
+    document.getElementById("dado-box").style.display = "block";
+    document.getElementById("dado-numero").textContent = "";
+    document.getElementById("dado-hint").style.display = "block";
+
+    let i = 0;
+    animacionDado = setInterval(() => {
+      document.getElementById("dado-emoji").textContent = carasAnim[i % carasAnim.length];
+      i++;
+    }, 80);
+  }
+
+  // ── Tecla ESPACIO ───────────────────────────────────
+  document.addEventListener("keydown", function(e) {
+    if (e.code === "Space" && esperandoDado) {
+      e.preventDefault();
+      esperandoDado = false;
+      clearInterval(animacionDado);
+
+      dadoResultado = Math.floor(Math.random() * 20) + 1;
+      const emoji   = dadoResultado === 20 ? "⚡" : dadoResultado === 1 ? "💀" : "🎲";
+
+      document.getElementById("dado-emoji").textContent  = emoji;
+      document.getElementById("dado-numero").textContent = `Resultado: ${dadoResultado}`;
+      document.getElementById("dado-hint").style.display = "none";
+
+      setTimeout(() => {
+        document.getElementById("dado-box").style.display = "none";
+        enviarAccion("atacar", dadoResultado);
+      }, 900);
+    }
+  });
+
+  // ── Enviar acción a Python ──────────────────────────
+  async function enviarAccion(tipo, dado = null) {
+    if (combateTerminado) return;
+
+    const res  = await fetch("/accion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: tipo, dado })
+    });
+    const data = await res.json();
+
+    // Animar dado del enemigo si atacó
+    if (data.dado_enemigo !== null) {
+      await animarDadoEnemigo(data.dado_enemigo);
+    }
+
+    agregarLog(data.turno, data.mensajes);
+    actualizarUI(data.jugador, data.enemigo);
+
+    if (data.resultado) {
+      combateTerminado = true;
+      const r = document.getElementById("resultado");
+      r.textContent   = data.resultado;
+      r.style.display = "block";
+      document.getElementById("btn-atacar").disabled = true;
+      document.getElementById("btn-pocion").disabled = true;
+    } else {
+      document.getElementById("btn-atacar").disabled = false;
+      document.getElementById("btn-pocion").disabled = false;
+    }
+  }
+
+  // ── Animación dado enemigo ──────────────────────────
+  function animarDadoEnemigo(resultado) {
+    return new Promise(resolve => {
+      document.getElementById("dado-box").style.display  = "block";
+      document.getElementById("dado-numero").textContent = "";
+      document.getElementById("dado-hint").style.display = "none";
+
+      let i = 0;
+      const anim = setInterval(() => {
+        document.getElementById("dado-emoji").textContent = carasAnim[i % carasAnim.length];
+        i++;
+      }, 80);
+
+      setTimeout(() => {
+        clearInterval(anim);
+        const emoji = resultado === 20 ? "⚡" : resultado === 1 ? "💀" : "🎲";
+        document.getElementById("dado-emoji").textContent  = emoji;
+        document.getElementById("dado-numero").textContent = `Resultado: ${resultado}`;
+
+        setTimeout(() => {
+          document.getElementById("dado-box").style.display = "none";
+          resolve();
+        }, 800);
+      }, 700);
+    });
+  }
+
+  // ── Actualizar UI ───────────────────────────────────
+  function actualizarUI(jugador, enemigo) {
+    document.getElementById("nombre-jugador").textContent   = jugador.nombre;
+    document.getElementById("vida-jugador").textContent     = `❤️ ${jugador.vida}`;
+    document.getElementById("ataque-jugador").textContent   = `⚔️ ${jugador.ataque}`;
+    document.getElementById("defensa-jugador").textContent  = `🛡️ ${jugador.defensa}`;
+    document.getElementById("pociones-jugador").textContent = `🧪 ${jugador.pociones}`;
+    document.getElementById("barra-jugador").style.width    = `${(jugador.vida / vidaMaxJugador) * 100}%`;
+
+    document.getElementById("nombre-enemigo").textContent  = enemigo.nombre;
+    document.getElementById("vida-enemigo").textContent    = `❤️ ${enemigo.vida}`;
+    document.getElementById("ataque-enemigo").textContent  = `⚔️ ${enemigo.ataque}`;
+    document.getElementById("defensa-enemigo").textContent = `🛡️ ${enemigo.defensa}`;
+    document.getElementById("barra-enemigo").style.width   = `${(enemigo.vida / vidaMaxEnemigo) * 100}%`;
+  }
+
+  // ── Log ─────────────────────────────────────────────
+  function agregarLog(turno, mensajes) {
+    const log = document.getElementById("log");
+    log.innerHTML += `<div style="color:#f4a261; margin-top:8px">— Turno ${turno} —</div>`;
+    mensajes.forEach(m => log.innerHTML += `<div>${m}</div>`);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // ── Reiniciar ────────────────────────────────────────
+  function reiniciar() {
+    document.getElementById("combate-panel").style.display = "none";
+    document.getElementById("log-panel").style.display     = "none";
+    document.getElementById("inicio-panel").style.display  = "block";
+    document.getElementById("btn-atacar").disabled         = false;
+    document.getElementById("btn-pocion").disabled         = false;
+    combateTerminado = false;
+  }
+</script>
+
+</body>
+</html>
